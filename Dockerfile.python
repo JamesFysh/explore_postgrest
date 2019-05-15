@@ -1,0 +1,27 @@
+FROM python:3.7
+
+# GIS packages, postgresql, graphviz and timezone configuration
+RUN apt-get update --fix-missing && apt-get install -y postgresql-client \
+    tzdata && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo Australia/Melbourne >/etc/timezone && \
+    ln -sf /usr/share/zoneinfo/Australia/Melbourne /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata 
+
+# Install necessary packages
+RUN pip install --no-cache-dir psycopg2 jupyter pandas faker
+
+# Add jfysh user
+RUN adduser --disabled-password --gecos '' jfysh && \
+    mkdir /home/jfysh/.jupyter && \
+    echo 'docker:x:999:jfysh' >> /etc/group
+
+# notebook configuration
+COPY jupyter_notebook_config.py /home/jfysh/.jupyter/
+
+USER jfysh
+
+EXPOSE 8888
+
+WORKDIR /notebooks
+CMD ["jupyter", "notebook"]
