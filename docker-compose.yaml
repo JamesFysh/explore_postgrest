@@ -1,9 +1,22 @@
 version: '3'
 services:
+  # postgres instance that will host our schema & data
+  db:
+    image: postgres:11
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: password
+
+  # postgrest instance that will generate and expose the REST interface
   server:
     image: postgrest/postgrest
     ports:
       - "3000:3000"
+    expose:
+      - "3000"
     links:
       - db:db
     environment:
@@ -12,15 +25,8 @@ services:
       PGRST_DB_ANON_ROLE: app_user
     depends_on:
       - db
-  db:
-    image: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: app_db
-      POSTGRES_USER: app_user
-      POSTGRES_PASSWORD: password
 
+  # Swagger-UI, so we can easily explore the REST interface
   swagger:
     image: swaggerapi/swagger-ui
     ports:
@@ -30,6 +36,8 @@ services:
     environment:
       API_URL: http://localhost:3000/
 
+  # Python / jupyter notebook interface so we can manipulate the database and
+  # REST interface arbitrarily
   python:
     build:
       context: .
@@ -41,3 +49,5 @@ services:
     links:
       - db:db
       - server:server
+    volumes:
+      - ./notebooks:/notebooks
