@@ -43,9 +43,9 @@ services:
       context: .
       dockerfile: Dockerfile.python
     ports:
-      - "8888:8888"
+      - "8999:8999"
     expose:
-      - "8888"
+      - "8999"
     links:
       - db:db
       - server:server
